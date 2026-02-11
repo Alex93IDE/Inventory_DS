@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Lote {
+  id             String      @id @default(uuid())
+  lote_id        String      @unique
+  sku            String
+  purchase_date  DateTime
+  qty_inicial    Int
+  qty_available  Int
+  unit_cost      Decimal     @db.Decimal(10,2)
+  total_cost     Decimal     @db.Decimal(12,2)
+  place          String?
+  order_ref      String?
+
+  movimientos    Movimiento[]
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([sku])
+  @@index([purchase_date])
+}
+
+model Movimiento {
+  id         String    @id @default(uuid())
+  date       DateTime  @default(now())
+  sku        String
+  type       MovementType
+  qty        Int
+  channel    String?
+  order_ref  String?
+
+  loteId     String
+  lote       Lote     @relation(fields: [loteId], references: [id])
+
+  createdAt  DateTime  @default(now())
+
+  @@index([sku])
+  @@index([loteId])
+}
+
+enum MovementType {
+  IN
+  OUT
+}
