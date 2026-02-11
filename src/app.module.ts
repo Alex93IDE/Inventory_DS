@@ -5,17 +5,35 @@ import { LoteModule } from './modules/lote/lote.module';
 import { MoviminetoModule } from './modules/movimineto/movimineto.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 20,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     LoteModule,
     MoviminetoModule,
     PrismaModule,
+    InventoryModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

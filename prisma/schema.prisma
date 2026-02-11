@@ -11,12 +11,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  //url      = env("DATABASE_URL")
 }
 
 model Lote {
   id             String      @id @default(uuid())
-  lote_id        String      @unique
+  ownerId        String
+  lote_id        String      
   sku            String
   purchase_date  DateTime
   qty_inicial    Int
@@ -33,10 +34,13 @@ model Lote {
 
   @@index([sku])
   @@index([purchase_date])
+  @@unique([ownerId, lote_id])
+
 }
 
 model Movimiento {
   id         String    @id @default(uuid())
+  ownerId    String
   date       DateTime  @default(now())
   sku        String
   type       MovementType

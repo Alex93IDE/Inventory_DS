@@ -1,12 +1,27 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { LoteService } from './lote.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateLoteDto } from './dto/create-lote.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('lote')
 export class LoteController {
   constructor(private readonly loteService: LoteService) {}
 
-  @Get('test')
-  async test() {
-    return await this.loteService.test();
+  @Post('add')
+  async create(@Body() body: CreateLoteDto, @Req() req: any) {
+    const userId = req.user.userId;
+    return await this.loteService.create(body, userId);
+  }
+
+  @Get()
+  async findAll(@Req() req: any) {
+    const userId = req.user.userId;
+    return await this.loteService.findAll(userId);
+  }
+
+  @Delete(':lote_id')
+  async remove(@Param('lote_id') loteId: string, @Req() req: any) {
+    return await this.loteService.removeByLoteId(loteId, req.user.userId);
   }
 }
