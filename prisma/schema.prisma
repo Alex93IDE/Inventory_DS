@@ -49,7 +49,7 @@ model Movimiento {
   order_ref  String?
 
   loteId     String
-  lote       Lote     @relation(fields: [loteId], references: [id])
+  lote       Lote     @relation(fields: [loteId], references: [id], onDelete: Cascade)
 
   createdAt  DateTime  @default(now())
 
