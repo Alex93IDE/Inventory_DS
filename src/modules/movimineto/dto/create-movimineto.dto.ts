@@ -19,4 +19,8 @@ export class CreateMovimientoDto {
   @IsOptional()
   @IsString()
   order_ref?: string;
+
+  @IsOptional()
+  @IsString()
+  lote_id?: string;
 }

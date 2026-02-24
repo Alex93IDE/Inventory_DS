@@ -9,6 +9,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { ProductoModule } from './modules/producto/producto.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { APP_GUARD } from '@nestjs/core';
     PrismaModule,
     InventoryModule,
     AuthModule,
+    ProductoModule,
   ],
   controllers: [AppController],
   providers: [

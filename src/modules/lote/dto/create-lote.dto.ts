@@ -14,7 +14,7 @@ export class CreateLoteDto {
 
   @IsString()
   @IsNotEmpty()
-  sku: string;
+  productoId: string;
 
   @IsString()
   @Matches(/^\d{2}-\d{2}-\d{4}$/, {

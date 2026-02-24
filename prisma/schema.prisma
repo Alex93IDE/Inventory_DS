@@ -14,9 +14,31 @@ datasource db {
   //url      = env("DATABASE_URL")
 }
 
+model Producto {
+  id        String   @id @default(uuid())
+  ownerId   String
+
+  name      String
+  sku       String
+  asin      String?
+  upc       String?
+
+  lotes     Lote[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerId, sku])
+  @@index([ownerId])
+}
+
 model Lote {
   id             String      @id @default(uuid())
   ownerId        String
+
+  productoId     String
+  producto       Producto    @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
   lote_id        String      
   sku            String
   purchase_date  DateTime

@@ -14,9 +14,23 @@ export class LoteService {
   }
 
   async create(data: CreateLoteDto, userId: string) {
+    const producto = await this.prisma.producto.findFirst({
+      where: {
+        id: data.productoId,
+        ownerId: userId,
+      },
+    });
+
+    if (!producto) {
+      throw new NotFoundException('Producto not found');
+    }
+
     return await this.prisma.lote.create({
       data: {
         ...data,
+        lote_id: data.lote_id + '-' + producto.sku,
+        productoId: producto.id,
+        sku: producto.sku,
         purchase_date: this.parseMMDDYYYY(data.purchase_date),
         ownerId: userId,
         qty_available: data.qty_inicial,
@@ -28,6 +42,30 @@ export class LoteService {
   async findAll(userId: string) {
     return await this.prisma.lote.findMany({
       where: {
+        ownerId: userId,
+      },
+      orderBy: {
+        purchase_date: 'asc',
+      },
+    });
+  }
+
+  async findAllByProducto(productoId: string, userId: string) {
+    // Primero validar que el producto pertenece al usuario
+    const producto = await this.prisma.producto.findFirst({
+      where: {
+        id: productoId,
+        ownerId: userId,
+      },
+    });
+
+    if (!producto) {
+      throw new NotFoundException('Producto not found');
+    }
+
+    return await this.prisma.lote.findMany({
+      where: {
+        productoId,
         ownerId: userId,
       },
       orderBy: {

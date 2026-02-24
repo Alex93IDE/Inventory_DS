@@ -31,6 +31,15 @@ export class LoteController {
     return await this.loteService.findAll(userId);
   }
 
+  @Get(':productId')
+  async findAllbyProducto(
+    @Param('productoId') productoId: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user.userId;
+    return await this.loteService.findAllByProducto(productoId, userId);
+  }
+
   @Patch(':lote_id')
   async update(
     @Param('lote_id') loteId: string,
