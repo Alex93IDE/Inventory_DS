@@ -3,7 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 export class UpdateLoteDto {
   @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'The lote id' })
   lote_id?: string;
 
   @IsOptional()

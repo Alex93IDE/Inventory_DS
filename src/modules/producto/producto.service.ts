@@ -15,10 +15,32 @@ export class ProductoService {
     });
   }
   async findAll(userId: string) {
-    return await this.prisma.producto.findMany({
+    const productos = await this.prisma.producto.findMany({
       where: { ownerId: userId },
       orderBy: { createdAt: 'desc' },
     });
+    if (!productos.length) return [];
+    const stockPorProducto = await this.prisma.lote.groupBy({
+      by: ['productoId'],
+      where: {
+        ownerId: userId,
+      },
+      _sum: {
+        qty_available: true,
+      },
+    });
+    const stockMap = new Map(
+      stockPorProducto.map((item) => [
+        item.productoId,
+        item._sum.qty_available ?? 0,
+      ]),
+    );
+
+    // 4️⃣ Unir resultados
+    return productos.map((producto) => ({
+      ...producto,
+      stock_total: stockMap.get(producto.id) ?? 0,
+    }));
   }
 
   async remove(id: string, userId: string) {

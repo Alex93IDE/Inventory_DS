@@ -27,6 +27,5 @@ export class CreateMovimientoDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ description: 'The lote id' })
   lote_id?: string;
 }
