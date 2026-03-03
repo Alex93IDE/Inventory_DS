@@ -10,7 +10,10 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MoviminetoService } from './movimineto.service';
 import { CreateMovimientoDto } from './dto/create-movimineto.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('movimiento')
 @UseGuards(JwtAuthGuard)
 @Controller('mov')
 export class MoviminetoController {

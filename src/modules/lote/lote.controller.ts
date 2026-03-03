@@ -13,7 +13,10 @@ import { LoteService } from './lote.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateLoteDto } from './dto/create-lote.dto';
 import { UpdateLoteDto } from './dto/update-lote.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('lote')
 @UseGuards(JwtAuthGuard)
 @Controller('lote')
 export class LoteController {
