@@ -22,7 +22,9 @@ export class MoviminetoService {
         });
 
         if (!lotes.length) {
-          throw new BadRequestException('No inventory available');
+          throw new BadRequestException(
+            `No inventory available for SKU: ${dto.sku}`,
+          );
         }
 
         // 2️⃣ Validar inventario total antes de tocar nada

@@ -15,8 +15,8 @@ import { ProductoModule } from './modules/producto/producto.module';
   imports: [
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 20,
+        ttl: 60,
+        limit: 5,
       },
     ]),
     ConfigModule.forRoot({
