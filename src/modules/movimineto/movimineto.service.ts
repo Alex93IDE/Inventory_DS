@@ -81,7 +81,9 @@ export class MoviminetoService {
       }
       if (dto.type === 'IN') {
         if (!dto.lote_id) {
-          throw new BadRequestException('lote_id is required for IN movement');
+          throw new BadRequestException(
+            'lote_id(name) is required for IN movement',
+          );
         }
 
         const lote = await tx.lote.findFirst({
@@ -139,6 +141,20 @@ export class MoviminetoService {
       where: {
         loteId,
         ownerId: userId,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+  }
+
+  async findByProducto(productoId: string, userId: string) {
+    return await this.prisma.movimiento.findMany({
+      where: {
+        ownerId: userId,
+        lote: {
+          productoId: productoId,
+        },
       },
       orderBy: {
         date: 'asc',
