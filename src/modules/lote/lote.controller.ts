@@ -34,7 +34,7 @@ export class LoteController {
     return await this.loteService.findAll(userId);
   }
 
-  @Get(':productId')
+  @Get('producto/:productoId')
   async findAllbyProducto(
     @Param('productoId') productoId: string,
     @Req() req: any,

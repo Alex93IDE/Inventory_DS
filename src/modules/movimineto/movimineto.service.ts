@@ -16,9 +16,7 @@ export class MoviminetoService {
             ownerId: userId,
             qty_available: { gt: 0 },
           },
-          orderBy: {
-            purchase_date: 'asc',
-          },
+          orderBy: [{ purchase_date: 'asc' }, { createdAt: 'asc' }],
         });
 
         if (!lotes.length) {
@@ -80,45 +78,74 @@ export class MoviminetoService {
         };
       }
       if (dto.type === 'IN') {
-        if (!dto.lote_id) {
+        if (!dto.sku) {
+          throw new BadRequestException('sku is required for IN movement');
+        }
+
+        let remaining = dto.qty;
+        const movimientosCreados: any[] = [];
+
+        // 1️⃣ Buscar lotes del SKU en orden LIFO (más nuevo primero)
+        const lotes = await tx.lote.findMany({
+          where: {
+            sku: dto.sku,
+            ownerId: userId,
+          },
+          orderBy: [{ purchase_date: 'desc' }, { createdAt: 'desc' }],
+        });
+
+        if (!lotes.length) {
+          throw new BadRequestException(`No lots found for SKU: ${dto.sku}`);
+        }
+
+        // 2️⃣ Repartir el IN respetando la capacidad de cada lote (qty_inicial)
+        for (const lote of lotes) {
+          if (remaining <= 0) break;
+
+          const espacioDisponible = lote.qty_inicial - lote.qty_available;
+
+          if (espacioDisponible <= 0) continue;
+
+          const agregar = Math.min(espacioDisponible, remaining);
+
+          // actualizar lote
+          await tx.lote.update({
+            where: { id: lote.id },
+            data: {
+              qty_available: {
+                increment: agregar,
+              },
+            },
+          });
+
+          // crear movimiento
+          const movimiento = await tx.movimiento.create({
+            data: {
+              ownerId: userId,
+              sku: lote.sku,
+              type: 'IN',
+              qty: agregar,
+              loteId: lote.id,
+              channel: dto.channel,
+              order_ref: dto.order_ref,
+            },
+          });
+
+          movimientosCreados.push(movimiento);
+
+          remaining -= agregar;
+        }
+
+        // 3️⃣ Si aún sobra cantidad, significa que excede la capacidad total de los lotes
+        if (remaining > 0) {
           throw new BadRequestException(
-            'lote_id(name) is required for IN movement',
+            'IN exceeds the available capacity across lots (qty_inicial limit)',
           );
         }
 
-        const lote = await tx.lote.findFirst({
-          where: {
-            lote_id: dto.lote_id,
-            ownerId: userId,
-          },
-        });
-
-        if (!lote) {
-          throw new BadRequestException('Lote not found');
-        }
-        // aumentar inventario
-        await tx.lote.update({
-          where: { id: lote.id },
-          data: {
-            qty_available: {
-              increment: dto.qty,
-            },
-          },
-        });
-        const movimiento = await tx.movimiento.create({
-          data: {
-            ownerId: userId,
-            sku: lote.sku,
-            type: 'IN',
-            qty: dto.qty,
-            loteId: lote.id,
-            channel: dto.channel,
-            order_ref: dto.order_ref,
-          },
-        });
         return {
-          message: 'IN movement processed successfully',
-          movimiento,
+          message: 'IN movement processed successfully (LIFO)',
+          movimientos: movimientosCreados,
         };
       }
       throw new BadRequestException('Invalid movement type');
