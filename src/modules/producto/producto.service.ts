@@ -17,29 +17,42 @@ export class ProductoService {
   async findAll(userId: string) {
     const productos = await this.prisma.producto.findMany({
       where: { ownerId: userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
     });
-    if (!productos.length) return [];
-    const stockPorProducto = await this.prisma.lote.groupBy({
-      by: ['productoId'],
-      where: {
-        ownerId: userId,
-      },
-      _sum: {
-        qty_available: true,
-      },
-    });
-    const stockMap = new Map(
-      stockPorProducto.map((item) => [
-        item.productoId,
-        item._sum.qty_available ?? 0,
-      ]),
-    );
 
-    // 4️⃣ Unir resultados
+    if (!productos.length) return [];
+
+    const lotes = await this.prisma.lote.findMany({
+      where: { ownerId: userId },
+      select: {
+        productoId: true,
+        qty_available: true,
+        unit_cost: true,
+      },
+    });
+
+    const stockMap = new Map<string, number>();
+    const costoMap = new Map<string, number>();
+
+    for (const lote of lotes) {
+      const stock = lote.qty_available;
+      const value = lote.qty_available * Number(lote.unit_cost);
+
+      stockMap.set(
+        lote.productoId,
+        (stockMap.get(lote.productoId) || 0) + stock,
+      );
+
+      costoMap.set(
+        lote.productoId,
+        Number(((costoMap.get(lote.productoId) || 0) + value).toFixed(2)),
+      );
+    }
+
     return productos.map((producto) => ({
       ...producto,
       stock_total: stockMap.get(producto.id) ?? 0,
+      costo_total: costoMap.get(producto.id) ?? 0,
     }));
   }
 

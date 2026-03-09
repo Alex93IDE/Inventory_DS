@@ -19,6 +19,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 @Controller('productos')
 export class ProductoController {
   constructor(private readonly productoService: ProductoService) {}
+
   @Post('add')
   async create(@Body() body: CreateProductoDto, @Req() req: any) {
     const userId = req.user.userId;

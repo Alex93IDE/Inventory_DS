@@ -6,6 +6,11 @@ import { CreateMovimientoDto } from './dto/create-movimineto.dto';
 export class MoviminetoService {
   constructor(private prisma: PrismaService) {}
 
+  parseMMDDYYYY(dateString: string): Date {
+    const [month, day, year] = dateString.split('-');
+    return new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+  }
+
   async create(dto: CreateMovimientoDto, userId: string) {
     return await this.prisma.$transaction(async (tx) => {
       if (dto.type === 'OUT') {
@@ -62,6 +67,7 @@ export class MoviminetoService {
               type: 'OUT',
               qty: consume,
               loteId: lote.id,
+              date: dto.date ? this.parseMMDDYYYY(dto.date) : new Date(),
               channel: dto.channel,
               order_ref: dto.order_ref,
             },
@@ -126,6 +132,7 @@ export class MoviminetoService {
               type: 'IN',
               qty: agregar,
               loteId: lote.id,
+              date: dto.date ? this.parseMMDDYYYY(dto.date) : new Date(),
               channel: dto.channel,
               order_ref: dto.order_ref,
             },
@@ -153,14 +160,33 @@ export class MoviminetoService {
   }
 
   async findAll(userId: string) {
-    return await this.prisma.movimiento.findMany({
+    const movimientos = await this.prisma.movimiento.findMany({
       where: {
         ownerId: userId,
       },
-      orderBy: {
-        date: 'asc',
+      include: {
+        lote: {
+          select: {
+            unit_cost: true,
+            lote_id: true,
+          },
+        },
       },
+      orderBy: [
+        {
+          date: 'desc',
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
+
+    return movimientos.map((mov) => ({
+      ...mov,
+      unit_cost: Number(mov.lote.unit_cost),
+      movement_cost: Number((mov.qty * Number(mov.lote.unit_cost)).toFixed(2)),
+    }));
   }
 
   async findByLote(loteId: string, userId: string) {

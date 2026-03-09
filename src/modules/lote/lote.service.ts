@@ -45,6 +45,18 @@ export class LoteService {
         ownerId: userId,
       },
       orderBy: {
+        purchase_date: 'desc',
+      },
+    });
+  }
+
+  async findByLoteId(loteId: string, userId: string) {
+    return await this.prisma.lote.findFirst({
+      where: {
+        lote_id: loteId,
+        ownerId: userId,
+      },
+      orderBy: {
         purchase_date: 'asc',
       },
     });

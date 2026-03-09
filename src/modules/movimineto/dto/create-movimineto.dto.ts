@@ -28,4 +28,8 @@ export class CreateMovimientoDto {
   @IsOptional()
   @IsString()
   lote_id?: string;
+
+  @IsOptional()
+  @IsString()
+  date?: string;
 }
