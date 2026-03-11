@@ -10,7 +10,7 @@ export class LoteService {
 
   parseMMDDYYYY(dateString: string): Date {
     const [month, day, year] = dateString.split('-');
-    return new Date(`${year}-${month}-${day}T00:00:00.000Z`);
+    return new Date(`${year}-${month}-${day}T12:00:00.000Z`);
   }
 
   async create(data: CreateLoteDto, userId: string) {

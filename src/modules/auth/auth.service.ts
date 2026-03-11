@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
   private supabase;
 
-  constructor() {
+  constructor(private prisma: PrismaService) {
     const supabaseUrl = process.env.SUPABASE_URL!;
     const supabaseKey = process.env.SUPABASE_ANON_KEY!;
 
@@ -16,7 +17,7 @@ export class AuthService {
   }
 
   async signUp(email: string, password: string) {
-    const { user, error } = await this.supabase.auth.signUp({
+    const { data, error } = await this.supabase.auth.signUp({
       email,
       password,
     });
@@ -25,7 +26,20 @@ export class AuthService {
       throw new Error(error.message);
     }
 
-    return user;
+    const user = data.user;
+
+    if (!user) {
+      throw new Error('User not returned from Supabase');
+    }
+
+    await this.prisma.user.create({
+      data: {
+        id: user.id,
+        email: user.email!,
+      },
+    });
+
+    return data;
   }
 
   async signIn(email: string, password: string) {
